@@ -13,8 +13,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3006;
 
-// Trust proxy for rate limiting behind nginx/caddy
-app.set('trust proxy', true);
+// Trust proxy - set to specific number for security
+app.set('trust proxy', 2);
 
 initDatabase();
 
@@ -24,7 +24,9 @@ app.use(express.json({ limit: '1mb' }));
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
-  message: { success: false, error: 'Too many requests' }
+  message: { success: false, error: 'Too many requests' },
+  standardHeaders: true,
+  legacyHeaders: false
 });
 app.use('/api', limiter);
 

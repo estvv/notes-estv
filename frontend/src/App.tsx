@@ -3,6 +3,8 @@ import { isAuthenticated } from './utils/auth';
 import { LoginPage } from './components/auth/LoginPage';
 import { SharedView } from './components/shared/SharedView';
 import { MainLayout } from './components/layout/MainLayout';
+import { FolderView } from './components/folders/FolderView';
+import { NoteView } from './components/notes/NoteView';
 
 function App() {
   return (
@@ -10,7 +12,9 @@ function App() {
       <Routes>
         <Route path="/login" element={!isAuthenticated() ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/shared/:token" element={<SharedView />} />
-        <Route path="/*" element={isAuthenticated() ? <MainLayout /> : <Navigate to="/login" />} />
+        <Route path="/folder/:id" element={isAuthenticated() ? <MainLayout><FolderView /></MainLayout> : <Navigate to="/login" />} />
+        <Route path="/note/:id" element={isAuthenticated() ? <MainLayout><NoteView /></MainLayout> : <Navigate to="/login" />} />
+        <Route path="/*" element={isAuthenticated() ? <MainLayout><></></MainLayout> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
