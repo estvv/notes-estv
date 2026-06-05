@@ -41,7 +41,8 @@ function extractTextContent(node: TiptapNode): any {
   }
   
   if (node.content) {
-    return node.content.map(n => extractTextContent(n));
+    const contents = node.content.map(n => extractTextContent(n));
+    return contents.flat(Infinity);
   }
   
   return '';
@@ -98,7 +99,7 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
     case 'table': {
       const rows = node.content?.map(row => {
         const cells = row.content?.map(cell => {
-          const cellContent = cell.content?.map(n => extractTextContent(n)) || [];
+          const cellContent = cell.content?.map(n => extractTextContent(n)).flat(Infinity) || [];
           return {
             text: cellContent,
             border: [true, true, true, true],
