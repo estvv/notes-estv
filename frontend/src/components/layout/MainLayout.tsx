@@ -22,10 +22,12 @@ export function MainLayout() {
         notesApi.list(searchQuery),
         foldersApi.list()
       ]);
-      setNotes(notesData);
-      setFolders(foldersData);
+      setNotes(notesData || []);
+      setFolders(foldersData || []);
     } catch (error) {
       console.error('Failed to load data:', error);
+      setNotes([]);
+      setFolders([]);
     }
   };
 

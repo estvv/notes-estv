@@ -14,17 +14,20 @@ const app = express();
 const PORT = process.env.PORT || 3006;
 
 // Trust proxy for rate limiting behind nginx/caddy
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 
 initDatabase();
 
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+// More lenient rate limiting
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100,
-  message: { success: false, error: 'Too many requests' }
+  max: 300, // Increased from 100 to 300
+  message: { success: false, error: 'Too many requests' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api', limiter);
 
