@@ -2,11 +2,9 @@ import type { Editor } from '@tiptap/react';
 
 interface ToolbarProps {
   editor: Editor | null;
-  onShare: () => void;
-  isShared: boolean;
 }
 
-export function Toolbar({ editor, onShare, isShared }: ToolbarProps) {
+export function Toolbar({ editor }: ToolbarProps) {
   if (!editor) return null;
 
   return (
@@ -121,19 +119,6 @@ export function Toolbar({ editor, onShare, isShared }: ToolbarProps) {
         className="px-3 py-1.5 rounded text-sm hover:bg-neutral-100 transition-colors"
       >
         Table
-      </button>
-
-      <div className="flex-1" />
-
-      <button
-        onClick={onShare}
-        className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${
-          isShared 
-            ? 'bg-green-600 text-white hover:bg-green-700' 
-            : 'border border-neutral-300 hover:bg-neutral-50'
-        }`}
-      >
-        {isShared ? 'Shared' : 'Share'}
       </button>
     </div>
   );

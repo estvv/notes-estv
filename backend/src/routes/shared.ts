@@ -1,22 +1,9 @@
 import { Router } from 'express';
-import { getNoteByShareToken, getFolderByShareToken, getNotesByFolder, getChildFolders } from '../db/index.js';
+import { getFolderByShareToken, getNotesByFolder, getChildFolders } from '../db/index.js';
 
 const router = Router();
 
 router.get('/:token', (req, res) => {
-  const note = getNoteByShareToken(req.params.token);
-  
-  if (note) {
-    return res.json({ 
-      success: true, 
-      data: { 
-        type: 'note',
-        title: note.title, 
-        content: note.content 
-      } 
-    });
-  }
-  
   const folder = getFolderByShareToken(req.params.token);
   
   if (folder) {
@@ -47,7 +34,7 @@ router.get('/:token', (req, res) => {
     });
   }
   
-  res.status(404).json({ success: false, error: 'Shared content not found' });
+  res.status(404).json({ success: false, error: 'Shared folder not found' });
 });
 
 export default router;

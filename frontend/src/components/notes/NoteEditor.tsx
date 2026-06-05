@@ -5,7 +5,6 @@ import Underline from '@tiptap/extension-underline';
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
 import TextAlign from '@tiptap/extension-text-align';
 import { Toolbar } from './Toolbar';
-import { ShareModal } from './ShareModal';
 import { useAutoSave } from '../../hooks/useAutoSave';
 import type { Note } from '../../types';
 
@@ -17,8 +16,6 @@ interface NoteEditorProps {
 
 export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
   const [title, setTitle] = useState('');
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [isShared, setIsShared] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -43,7 +40,6 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
   useEffect(() => {
     if (note) {
       setTitle(note.title);
-      setIsShared(note.is_shared === 1);
       
       if (editor && note.content) {
         try {
@@ -110,11 +106,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
         </button>
       </div>
 
-      <Toolbar 
-        editor={editor} 
-        onShare={() => setShowShareModal(true)}
-        isShared={isShared}
-      />
+      <Toolbar editor={editor} />
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-6">
@@ -124,23 +116,6 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
           />
         </div>
       </div>
-
-      {showShareModal && (
-        <ShareModal
-          note={note}
-          onClose={() => setShowShareModal(false)}
-          onShare={(token) => {
-            setIsShared(true);
-            note.share_token = token;
-            note.is_shared = 1;
-          }}
-          onUnshare={() => {
-            setIsShared(false);
-            note.share_token = null;
-            note.is_shared = 0;
-          }}
-        />
-      )}
     </div>
   );
 }

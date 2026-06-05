@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { validateContent } from '../middleware/contentLimit.js';
-import { getNotes, getNoteById, createNote, updateNote, deleteNote, generateShareToken, disableSharing } from '../db/index.js';
+import { getNotes, getNoteById, createNote, updateNote, deleteNote } from '../db/index.js';
 
 const router = Router();
 
@@ -51,16 +51,6 @@ router.put('/:id', validateContent, (req: AuthRequest, res) => {
 
 router.delete('/:id', (req: AuthRequest, res) => {
   deleteNote(parseInt(req.params.id));
-  res.json({ success: true });
-});
-
-router.post('/:id/share', (req: AuthRequest, res) => {
-  const token = generateShareToken(parseInt(req.params.id));
-  res.json({ success: true, data: { share_token: token } });
-});
-
-router.delete('/:id/share', (req: AuthRequest, res) => {
-  disableSharing(parseInt(req.params.id));
   res.json({ success: true });
 });
 

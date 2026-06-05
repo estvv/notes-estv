@@ -45,13 +45,7 @@ export const notesApi = {
   update: (id: number, note: Partial<{ title: string; content: string; folder_id: number }>): Promise<Note> =>
     request(`/notes/${id}`, { method: 'PUT', body: JSON.stringify(note) }),
   
-  delete: (id: number): Promise<void> => request(`/notes/${id}`, { method: 'DELETE' }),
-  
-  share: (id: number): Promise<{ share_token: string }> => request(`/notes/${id}/share`, { method: 'POST' }),
-  
-  unshare: (id: number): Promise<void> => request(`/notes/${id}/share`, { method: 'DELETE' }),
-  
-  getShared: (token: string): Promise<{ title: string; content: string }> => request(`/shared/${token}`)
+  delete: (id: number): Promise<void> => request(`/notes/${id}`, { method: 'DELETE' })
 };
 
 export const foldersApi = {
