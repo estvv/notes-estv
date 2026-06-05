@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import type { Editor } from '@tiptap/react';
 
 interface ToolbarProps {
@@ -5,9 +6,31 @@ interface ToolbarProps {
 }
 
 export function Toolbar({ editor }: ToolbarProps) {
-  if (!editor) return null;
+  const [isInTable, setIsInTable] = useState(false);
 
-  const isInTable = editor.isActive('table');
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateTableState = () => {
+      setIsInTable(editor.isActive('table'));
+    };
+
+    // Update on every editor state change
+    editor.on('transaction', updateTableState);
+    editor.on('focus', updateTableState);
+    editor.on('selectionUpdate', updateTableState);
+
+    // Initial state
+    updateTableState();
+
+    return () => {
+      editor.off('transaction', updateTableState);
+      editor.off('focus', updateTableState);
+      editor.off('selectionUpdate', updateTableState);
+    };
+  }, [editor]);
+
+  if (!editor) return null;
 
   return (
     <div className="flex items-center gap-1 p-3 border-b border-neutral-200 flex-wrap">

@@ -48,9 +48,14 @@ export function FolderView() {
     
     try {
       await foldersApi.update(folder.id, newName.trim());
-      setFolder({ ...folder, name: newName.trim() });
       setIsEditing(false);
-      refreshData();
+      await refreshData();
+      const folders = await foldersApi.list();
+      const foundFolder = folders.find((f: Folder) => f.id === parseInt(id!));
+      if (foundFolder) {
+        setFolder(foundFolder);
+        setNewName(foundFolder.name);
+      }
     } catch (error) {
       console.error('Failed to rename folder:', error);
     }
@@ -65,7 +70,7 @@ export function FolderView() {
       setShareUrl(url);
       setFolder({ ...folder, is_shared: 1, share_token: result.share_token });
       setShowShareConfirm(true);
-      refreshData();
+      await refreshData();
     } catch (error) {
       console.error('Failed to share folder:', error);
     }
@@ -79,7 +84,7 @@ export function FolderView() {
       setFolder({ ...folder, is_shared: 0, share_token: null });
       setShowShareConfirm(false);
       setShareUrl('');
-      refreshData();
+      await refreshData();
     } catch (error) {
       console.error('Failed to unshare folder:', error);
     }
@@ -92,7 +97,7 @@ export function FolderView() {
     
     try {
       await foldersApi.delete(folder.id);
-      refreshData();
+      await refreshData();
       navigate('/');
     } catch (error) {
       console.error('Failed to delete folder:', error);
@@ -106,7 +111,7 @@ export function FolderView() {
         content: '',
         folder_id: parseInt(id!)
       });
-      refreshData();
+      await refreshData();
       navigate(`/note/${note.id}`);
     } catch (error) {
       console.error('Failed to create note:', error);
@@ -127,6 +132,7 @@ export function FolderView() {
     try {
       const noteIds = newNotes.map(n => n.id);
       await notesApi.reorder(noteIds);
+      await refreshData();
     } catch (error) {
       console.error('Failed to save order:', error);
       loadFolderData();
@@ -142,6 +148,7 @@ export function FolderView() {
     try {
       const noteIds = newNotes.map(n => n.id);
       await notesApi.reorder(noteIds);
+      await refreshData();
     } catch (error) {
       console.error('Failed to save order:', error);
       loadFolderData();
