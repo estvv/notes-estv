@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { notesApi, foldersApi } from '../utils/api';
+import { isAuthenticated } from '../utils/auth';
 import type { Note, Folder } from '../types';
 
 interface DataContextValue {
@@ -20,7 +21,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    refreshData();
+    // Only fetch data if user is authenticated
+    if (isAuthenticated()) {
+      refreshData();
+    } else {
+      setLoading(false);
+    }
   }, [searchQuery]);
 
   const refreshData = async () => {
