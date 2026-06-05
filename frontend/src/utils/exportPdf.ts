@@ -10,56 +10,70 @@ interface TiptapNode {
 
 type PdfContent = any;
 
+function extractTextContent(node: TiptapNode): any {
+  if (node.type === 'text') {
+    let text = node.text || '';
+    if (node.marks && node.marks.length > 0) {
+      const styles: any = {};
+      node.marks.forEach(mark => {
+        switch (mark.type) {
+          case 'bold':
+            styles.bold = true;
+            break;
+          case 'italic':
+            styles.italics = true;
+            break;
+          case 'underline':
+            styles.decoration = 'underline';
+            break;
+          case 'strike':
+            styles.decoration = 'lineThrough';
+            break;
+          case 'code':
+            styles.font = 'Courier';
+            styles.background = '#f5f5f5';
+            break;
+        }
+      });
+      return { text, ...styles };
+    }
+    return text;
+  }
+  
+  if (node.content) {
+    return node.content.map(n => extractTextContent(n));
+  }
+  
+  return '';
+}
+
 function nodeToPdfmake(node: TiptapNode): PdfContent[] {
   switch (node.type) {
     case 'paragraph': {
-      const textContent = node.content?.map(n => nodeToPdfmake(n)).join('') || '';
-      return [{ text: textContent, style: 'paragraph' }];
+      const content = node.content?.map(n => extractTextContent(n)) || [];
+      return [{ text: content, style: 'paragraph' }];
     }
     
     case 'heading': {
       const level = node.attrs?.level || 1;
-      const textContent = node.content?.map(n => nodeToPdfmake(n)).join('') || '';
+      const content = node.content?.map(n => extractTextContent(n)) || [];
       const style = `heading${level}` as const;
-      return [{ text: textContent, style, margin: [0, 10, 0, 5] }];
-    }
-    
-    case 'text': {
-      let text = node.text || '';
-      if (node.marks) {
-        const styles: any = {};
-        node.marks.forEach(mark => {
-          switch (mark.type) {
-            case 'bold':
-              styles.bold = true;
-              break;
-            case 'italic':
-              styles.italics = true;
-              break;
-            case 'underline':
-              styles.decoration = 'underline';
-              break;
-            case 'strike':
-              styles.decoration = 'lineThrough';
-              break;
-            case 'code':
-              styles.font = 'Courier';
-              styles.background = '#f5f5f5';
-              break;
-          }
-        });
-        return [{ text, ...styles }];
-      }
-      return [{ text }];
+      return [{ text: content, style, margin: [0, 10, 0, 5] }];
     }
     
     case 'bulletList': {
-      const items = node.content?.map(n => nodeToPdfmake(n)).flat() || [];
+      const items = node.content?.map(listItem => {
+        const itemContent = listItem.content?.map(n => nodeToPdfmake(n)).flat() || [];
+        return itemContent;
+      }) || [];
       return [{ ul: items, style: 'list' }];
     }
     
     case 'orderedList': {
-      const items = node.content?.map(n => nodeToPdfmake(n)).flat() || [];
+      const items = node.content?.map(listItem => {
+        const itemContent = listItem.content?.map(n => nodeToPdfmake(n)).flat() || [];
+        return itemContent;
+      }) || [];
       return [{ ol: items, style: 'list' }];
     }
     
@@ -69,7 +83,7 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
     }
     
     case 'blockquote': {
-      const content = node.content?.map(n => nodeToPdfmake(n)).flat() || [];
+      const content = node.content?.map(n => extractTextContent(n)) || [];
       return [{ text: content, style: 'quote', margin: [10, 5, 10, 5] }];
     }
     
@@ -84,7 +98,7 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
     case 'table': {
       const rows = node.content?.map(row => {
         const cells = row.content?.map(cell => {
-          const cellContent = cell.content?.map(n => nodeToPdfmake(n)).flat() || [];
+          const cellContent = cell.content?.map(n => extractTextContent(n)) || [];
           return {
             text: cellContent,
             border: [true, true, true, true],
