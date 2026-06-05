@@ -20,7 +20,24 @@ export function initDatabase() {
   const schemaPath = path.join(__dirname, 'schema.sql');
   const schema = fs.readFileSync(schemaPath, 'utf-8');
   db.exec(schema);
+  
+  runMigrations();
+  
   console.log('Database initialized');
+}
+
+function runMigrations() {
+  const columns = db.prepare("PRAGMA table_info(folders)").all() as any[];
+  const hasShareToken = columns.some(col => col.name === 'share_token');
+  
+  if (!hasShareToken) {
+    db.exec(`
+      ALTER TABLE folders ADD COLUMN share_token TEXT UNIQUE;
+      ALTER TABLE folders ADD COLUMN is_shared INTEGER DEFAULT 0;
+    `);
+    db.exec('CREATE INDEX IF NOT EXISTS idx_folders_share_token ON folders(share_token)');
+    console.log('Migration: Added share_token columns to folders');
+  }
 }
 
 export function getNotes(folderId?: number, search?: string): Note[] {
