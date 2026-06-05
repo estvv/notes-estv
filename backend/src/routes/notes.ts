@@ -22,6 +22,10 @@ router.post('/', validateContent, (req: AuthRequest, res) => {
     return res.status(400).json({ success: false, error: 'Title required' });
   }
   
+  if (!folder_id) {
+    return res.status(400).json({ success: false, error: 'Folder ID required' });
+  }
+  
   const note = createNote(title, content || '', folder_id);
   res.json({ success: true, data: note });
 });

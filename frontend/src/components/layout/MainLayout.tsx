@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { NoteEditor } from '../notes/NoteEditor';
 import { EmptyState } from '../notes/EmptyState';
+import { FolderView } from '../folders/FolderView';
 import { notesApi, foldersApi } from '../../utils/api';
 import type { Note, Folder } from '../../types';
 
 export function MainLayout() {
+  const navigate = useNavigate();
+  const { noteId, folderId } = useParams<{ noteId?: string; folderId?: string }>();
+  
   const [notes, setNotes] = useState<Note[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -35,9 +39,7 @@ export function MainLayout() {
     try {
       await notesApi.delete(id);
       setNotes(notes.filter(n => n.id !== id));
-      if (selectedNoteId === id) {
-        setSelectedNoteId(null);
-      }
+      navigate('/');
     } catch (error) {
       console.error('Failed to delete note:', error);
     }
@@ -52,7 +54,20 @@ export function MainLayout() {
     }
   };
 
-  const selectedNote = notes.find(n => n.id === selectedNoteId) || null;
+  const handleSelectNote = (id: number) => {
+    navigate(`/note/${id}`);
+  };
+
+  const handleSelectFolder = (id: number | null) => {
+    if (id) {
+      navigate(`/folder/${id}`);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const selectedNote = noteId ? notes.find(n => n.id === parseInt(noteId)) || null : null;
+  const selectedFolderId = folderId ? parseInt(folderId) : null;
 
   return (
     <div className="h-screen flex flex-col bg-white">
@@ -62,22 +77,30 @@ export function MainLayout() {
         <Sidebar
           folders={folders}
           notes={notes}
-          selectedNoteId={selectedNoteId}
-          selectedFolderId={null}
-          onSelectNote={setSelectedNoteId}
-          onSelectFolder={() => {}}
+          selectedNoteId={noteId ? parseInt(noteId) : null}
+          selectedFolderId={selectedFolderId}
+          onSelectNote={handleSelectNote}
+          onSelectFolder={handleSelectFolder}
           onDataUpdate={loadData}
         />
         
-        {selectedNote ? (
-          <NoteEditor
-            note={selectedNote}
-            onUpdate={handleUpdateNote}
-            onDelete={handleDeleteNote}
-          />
-        ) : (
-          <EmptyState />
-        )}
+        <Routes>
+          <Route path="/note/:noteId" element={
+            selectedNote ? (
+              <NoteEditor
+                note={selectedNote}
+                onUpdate={handleUpdateNote}
+                onDelete={handleDeleteNote}
+              />
+            ) : (
+              <EmptyState />
+            )
+          } />
+          
+          <Route path="/folder/:folderId" element={<FolderView />} />
+          
+          <Route path="/" element={<EmptyState />} />
+        </Routes>
       </div>
     </div>
   );
