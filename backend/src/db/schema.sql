@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS notes (
     title TEXT NOT NULL,
     content TEXT NOT NULL DEFAULT '',
     folder_id INTEGER,
+    position INTEGER DEFAULT 0,
     share_token TEXT UNIQUE,
     is_shared INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

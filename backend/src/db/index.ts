@@ -51,6 +51,13 @@ function runMigrations() {
     `);
     console.log('Migration: Added share_token columns to notes');
   }
+  
+  const hasNotePosition = noteColumns.some(col => col.name === 'position');
+  
+  if (!hasNotePosition) {
+    db.exec(`ALTER TABLE notes ADD COLUMN position INTEGER DEFAULT 0`);
+    console.log('Migration: Added position column to notes');
+  }
 }
 
 export function getNotes(folderId?: number, search?: string): Note[] {
@@ -73,14 +80,17 @@ export function getNotes(folderId?: number, search?: string): Note[] {
     query += ' WHERE ' + conditions.join(' AND ');
   }
   
-  query += ' ORDER BY updated_at DESC';
+  query += ' ORDER BY position ASC, updated_at DESC';
   
   return db.prepare(query).all(...params) as Note[];
 }
 
 export function createNote(title: string, content: string, folderId?: number): Note {
-  const stmt = db.prepare('INSERT INTO notes (title, content, folder_id) VALUES (?, ?, ?)');
-  const result = stmt.run(title, content, folderId || null);
+  const folderNotes = getNotes(folderId);
+  const maxPosition = folderNotes.length > 0 ? Math.max(...folderNotes.map(n => n.position || 0)) : -1;
+  
+  const stmt = db.prepare('INSERT INTO notes (title, content, folder_id, position) VALUES (?, ?, ?, ?)');
+  const result = stmt.run(title, content, folderId || null, maxPosition + 1);
   return getNoteById(result.lastInsertRowid as number)!;
 }
 
@@ -111,6 +121,10 @@ export function generateShareToken(id: number): string {
 
 export function disableSharing(id: number) {
   db.prepare('UPDATE notes SET share_token = NULL, is_shared = 0 WHERE id = ?').run(id);
+}
+
+export function updateNotePosition(id: number, position: number): void {
+  db.prepare('UPDATE notes SET position = ? WHERE id = ?').run(position, id);
 }
 
 export function getFolders(): Folder[] {

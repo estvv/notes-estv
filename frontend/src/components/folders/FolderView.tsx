@@ -111,18 +111,34 @@ export function FolderView() {
     alert('Share link copied to clipboard!');
   };
 
-  const moveNoteUp = (index: number) => {
+  const moveNoteUp = async (index: number) => {
     if (index === 0) return;
     const newNotes = [...notes];
     [newNotes[index - 1], newNotes[index]] = [newNotes[index], newNotes[index - 1]];
     setNotes(newNotes);
+    
+    try {
+      const noteIds = newNotes.map(n => n.id);
+      await notesApi.reorder(noteIds);
+    } catch (error) {
+      console.error('Failed to save order:', error);
+      loadFolderData();
+    }
   };
 
-  const moveNoteDown = (index: number) => {
+  const moveNoteDown = async (index: number) => {
     if (index === notes.length - 1) return;
     const newNotes = [...notes];
     [newNotes[index], newNotes[index + 1]] = [newNotes[index + 1], newNotes[index]];
     setNotes(newNotes);
+    
+    try {
+      const noteIds = newNotes.map(n => n.id);
+      await notesApi.reorder(noteIds);
+    } catch (error) {
+      console.error('Failed to save order:', error);
+      loadFolderData();
+    }
   };
 
   const formatDate = (dateString: string) => {

@@ -3,6 +3,7 @@ export interface Note {
   title: string;
   content: string;
   folder_id: number | null;
+  position: number;
   share_token: string | null;
   is_shared: number;
   created_at: string;

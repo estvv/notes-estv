@@ -45,7 +45,10 @@ export const notesApi = {
   update: (id: number, note: Partial<{ title: string; content: string; folder_id: number }>): Promise<Note> =>
     request(`/notes/${id}`, { method: 'PUT', body: JSON.stringify(note) }),
   
-  delete: (id: number): Promise<void> => request(`/notes/${id}`, { method: 'DELETE' })
+  delete: (id: number): Promise<void> => request(`/notes/${id}`, { method: 'DELETE' }),
+  
+  reorder: (noteIds: number[]): Promise<void> =>
+    request('/notes/reorder', { method: 'POST', body: JSON.stringify({ noteIds }) })
 };
 
 export const foldersApi = {

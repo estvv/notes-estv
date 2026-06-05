@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { validateContent } from '../middleware/contentLimit.js';
-import { getNotes, getNoteById, createNote, updateNote, deleteNote } from '../db/index.js';
+import { getNotes, getNoteById, createNote, updateNote, deleteNote, updateNotePosition } from '../db/index.js';
 
 const router = Router();
 
@@ -55,6 +55,20 @@ router.put('/:id', validateContent, (req: AuthRequest, res) => {
 
 router.delete('/:id', (req: AuthRequest, res) => {
   deleteNote(parseInt(req.params.id));
+  res.json({ success: true });
+});
+
+router.post('/reorder', (req: AuthRequest, res) => {
+  const { noteIds } = req.body;
+  
+  if (!Array.isArray(noteIds)) {
+    return res.status(400).json({ success: false, error: 'noteIds must be an array' });
+  }
+  
+  noteIds.forEach((id: number, index: number) => {
+    updateNotePosition(id, index);
+  });
+  
   res.json({ success: true });
 });
 

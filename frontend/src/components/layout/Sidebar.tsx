@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { foldersApi, notesApi } from '../../utils/api';
 import type { Folder, Note } from '../../types';
@@ -18,6 +18,7 @@ export function Sidebar({
   const location = useLocation();
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
 
   const selectedFolderId = location.pathname.startsWith('/folder/')
     ? parseInt(location.pathname.split('/')[2])
@@ -26,6 +27,27 @@ export function Sidebar({
   const selectedNoteId = location.pathname.startsWith('/note/')
     ? parseInt(location.pathname.split('/')[2])
     : null;
+
+  useEffect(() => {
+    if (selectedNoteId) {
+      const note = notes.find(n => n.id === selectedNoteId);
+      if (note && note.folder_id && !expandedFolders.has(note.folder_id)) {
+        setExpandedFolders(prev => new Set(prev).add(note.folder_id!));
+      }
+    }
+  }, [selectedNoteId, notes]);
+
+  const toggleFolder = (folderId: number) => {
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderId)) {
+        newSet.delete(folderId);
+      } else {
+        newSet.add(folderId);
+      }
+      return newSet;
+    });
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -157,6 +179,7 @@ export function Sidebar({
             <div className="space-y-1">
               {folders.map(folder => {
                 const folderNotes = notes.filter(n => n.folder_id === folder.id);
+                const isExpanded = expandedFolders.has(folder.id);
                 
                 return (
                   <div key={folder.id}>
@@ -174,14 +197,33 @@ export function Sidebar({
                       </button>
                       
                       <button
-                        onClick={() => navigate(`/folder/${folder.id}`)}
+                        onClick={() => toggleFolder(folder.id)}
                         className="flex items-center gap-2 flex-1 text-left"
                       >
+                        {folderNotes.length > 0 ? (
+                          <svg 
+                            className={`w-4 h-4 text-neutral-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        ) : (
+                          <div className="w-4 h-4 flex-shrink-0" />
+                        )}
+                        
                         <svg className="w-4 h-4 text-neutral-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
                         
-                        <span className="flex-1 text-sm font-medium text-neutral-700 truncate">
+                        <span 
+                          className="flex-1 text-sm font-medium text-neutral-700 truncate"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/folder/${folder.id}`);
+                          }}
+                        >
                           {formatFolderName(folder.name)}
                         </span>
                         
@@ -213,7 +255,7 @@ export function Sidebar({
                       </button>
                     </div>
                     
-                    {folderNotes.length > 0 && (
+                    {isExpanded && folderNotes.length > 0 && (
                       <div className="ml-6 border-l border-neutral-200 pl-2 mt-1 mb-1">
                         {folderNotes.map(note => (
                           <button
