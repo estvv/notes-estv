@@ -33,6 +33,27 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   return data.data;
 }
 
+// Public request - no auth required, no redirect on 401
+async function publicRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options?.headers as Record<string, string>,
+  };
+  
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.data;
+}
+
 export const notesApi = {
   list: (search?: string, folderId?: number): Promise<Note[]> => 
     request(`/notes?${search ? `search=${encodeURIComponent(search)}` : ''}${folderId ? `&folder_id=${folderId}` : ''}`),
@@ -65,5 +86,5 @@ export const foldersApi = {
     folder: { id: number; name: string };
     notes: Array<{ id: number; title: string; content: string; updated_at: string }>;
     childFolders: Array<{ id: number; name: string; share_token: string | null; is_shared: number }>;
-  }> => request(`/shared/${token}`)
+  }> => publicRequest(`/shared/${token}`)
 };
