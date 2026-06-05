@@ -111,6 +111,20 @@ export function FolderView() {
     alert('Share link copied to clipboard!');
   };
 
+  const moveNoteUp = (index: number) => {
+    if (index === 0) return;
+    const newNotes = [...notes];
+    [newNotes[index - 1], newNotes[index]] = [newNotes[index], newNotes[index - 1]];
+    setNotes(newNotes);
+  };
+
+  const moveNoteDown = (index: number) => {
+    if (index === notes.length - 1) return;
+    const newNotes = [...notes];
+    [newNotes[index], newNotes[index + 1]] = [newNotes[index + 1], newNotes[index]];
+    setNotes(newNotes);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -243,21 +257,62 @@ export function FolderView() {
           </div>
         ) : (
           <div className="grid gap-3">
-            {notes.map(note => (
-              <button
+            {notes.map((note, index) => (
+              <div
                 key={note.id}
-                onClick={() => navigate(`/note/${note.id}`)}
-                className="w-full text-left p-4 border border-neutral-200 rounded-lg hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
+                className="flex items-center gap-2 p-4 border border-neutral-200 rounded-lg hover:border-neutral-300 hover:bg-neutral-50 transition-colors group"
               >
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="text-sm font-semibold text-neutral-900 truncate flex-1">
-                    {note.title}
-                  </h3>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveNoteUp(index);
+                    }}
+                    disabled={index === 0}
+                    className={`p-1 rounded transition-colors ${
+                      index === 0 
+                        ? 'text-neutral-200 cursor-not-allowed' 
+                        : 'text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100'
+                    }`}
+                    title="Move up"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveNoteDown(index);
+                    }}
+                    disabled={index === notes.length - 1}
+                    className={`p-1 rounded transition-colors ${
+                      index === notes.length - 1 
+                        ? 'text-neutral-200 cursor-not-allowed' 
+                        : 'text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100'
+                    }`}
+                    title="Move down"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
                 </div>
-                <p className="text-xs text-neutral-500 mt-1">
-                  Updated {formatDate(note.updated_at)}
-                </p>
-              </button>
+                
+                <button
+                  onClick={() => navigate(`/note/${note.id}`)}
+                  className="flex-1 text-left"
+                >
+                  <div className="flex items-start justify-between mb-1">
+                    <h3 className="text-sm font-semibold text-neutral-900 truncate flex-1">
+                      {note.title}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    Updated {formatDate(note.updated_at)}
+                  </p>
+                </button>
+              </div>
             ))}
           </div>
         )}
