@@ -1,4 +1,3 @@
-import html2pdf from 'html2pdf.js';
 import type { Note } from '../types';
 
 interface TiptapNode {
@@ -9,249 +8,201 @@ interface TiptapNode {
   attrs?: any;
 }
 
-function nodeToHtml(node: TiptapNode): string {
+type PdfContent = any;
+
+function nodeToPdfmake(node: TiptapNode): PdfContent[] {
   switch (node.type) {
-    case 'paragraph':
-      const paragraphContent = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<p>${paragraphContent}</p>`;
+    case 'paragraph': {
+      const textContent = node.content?.map(n => nodeToPdfmake(n)).join('') || '';
+      return [{ text: textContent, style: 'paragraph' }];
+    }
     
-    case 'heading':
+    case 'heading': {
       const level = node.attrs?.level || 1;
-      const headingContent = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<h${level}>${headingContent}</h${level}>`;
+      const textContent = node.content?.map(n => nodeToPdfmake(n)).join('') || '';
+      const style = `heading${level}` as const;
+      return [{ text: textContent, style, margin: [0, 10, 0, 5] }];
+    }
     
-    case 'text':
+    case 'text': {
       let text = node.text || '';
       if (node.marks) {
+        const styles: any = {};
         node.marks.forEach(mark => {
           switch (mark.type) {
             case 'bold':
-              text = `<strong>${text}</strong>`;
+              styles.bold = true;
               break;
             case 'italic':
-              text = `<em>${text}</em>`;
+              styles.italics = true;
               break;
             case 'underline':
-              text = `<u>${text}</u>`;
+              styles.decoration = 'underline';
               break;
             case 'strike':
-              text = `<s>${text}</s>`;
+              styles.decoration = 'lineThrough';
               break;
             case 'code':
-              text = `<code>${text}</code>`;
+              styles.font = 'Courier';
+              styles.background = '#f5f5f5';
               break;
           }
         });
+        return [{ text, ...styles }];
       }
-      return text;
+      return [{ text }];
+    }
     
-    case 'bulletList':
-      const bulletItems = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<ul>${bulletItems}</ul>`;
+    case 'bulletList': {
+      const items = node.content?.map(n => nodeToPdfmake(n)).flat() || [];
+      return [{ ul: items, style: 'list' }];
+    }
     
-    case 'orderedList':
-      const orderedItems = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<ol>${orderedItems}</ol>`;
+    case 'orderedList': {
+      const items = node.content?.map(n => nodeToPdfmake(n)).flat() || [];
+      return [{ ol: items, style: 'list' }];
+    }
     
-    case 'listItem':
-      const listItemContent = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<li>${listItemContent}</li>`;
+    case 'listItem': {
+      const content = node.content?.map(n => nodeToPdfmake(n)).flat() || [];
+      return content;
+    }
     
-    case 'blockquote':
-      const blockquoteContent = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<blockquote>${blockquoteContent}</blockquote>`;
+    case 'blockquote': {
+      const content = node.content?.map(n => nodeToPdfmake(n)).flat() || [];
+      return [{ text: content, style: 'quote', margin: [10, 5, 10, 5] }];
+    }
     
-    case 'codeBlock':
-      const codeContent = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<pre><code>${codeContent}</code></pre>`;
+    case 'codeBlock': {
+      const codeText = node.content?.map(n => n.text).join('') || '';
+      return [{ text: codeText, style: 'code', margin: [10, 10, 10, 10] }];
+    }
     
     case 'hardBreak':
-      return '<br>';
+      return [{ text: '\n' }];
     
-    case 'table':
-      const tableContent = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<table>${tableContent}</table>`;
-    
-    case 'tableRow':
-      const rowContent = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      return `<tr>${rowContent}</tr>`;
-    
-    case 'tableCell':
-    case 'tableHeader':
-      const cellContent = node.content?.map(n => nodeToHtml(n)).join('') || '';
-      const tag = node.type === 'tableHeader' ? 'th' : 'td';
-      return `<${tag}>${cellContent}</${tag}>`;
+    case 'table': {
+      const rows = node.content?.map(row => {
+        const cells = row.content?.map(cell => {
+          const cellContent = cell.content?.map(n => nodeToPdfmake(n)).flat() || [];
+          return {
+            text: cellContent,
+            border: [true, true, true, true],
+            fillColor: cell.type === 'tableHeader' ? '#f5f5f5' : undefined,
+          };
+        }) || [];
+        return cells;
+      }) || [];
+      
+      return [{ 
+        table: { 
+          body: rows,
+          widths: Array(rows[0]?.length || 0).fill('*')
+        },
+        style: 'table',
+        margin: [0, 10, 0, 10]
+      }];
+    }
     
     default:
-      return '';
+      return [];
   }
 }
 
-function parseNoteContent(content: string): string {
+function parseNoteContent(content: string): PdfContent[] {
   try {
     const parsed = JSON.parse(content);
     if (parsed.content && Array.isArray(parsed.content)) {
-      return parsed.content.map((node: TiptapNode) => nodeToHtml(node)).join('');
+      return parsed.content.flatMap((node: TiptapNode) => nodeToPdfmake(node));
     }
-    return '';
+    return [];
   } catch {
-    return content;
+    return [{ text: content }];
   }
 }
 
 export async function exportFolderToPdf(folderName: string, notes: Note[]): Promise<void> {
-  const notesHtml = notes
-    .map((note, index) => {
-      const content = parseNoteContent(note.content);
-      const divider = index < notes.length - 1 ? '<div class="page-break"></div>' : '';
-      return `
-        <div class="note">
-          <h1 class="note-title">${note.title}</h1>
-          <div class="note-content">${content}</div>
-          ${divider}
-        </div>
-      `;
-    })
-    .join('');
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body {
-          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #171717;
-          line-height: 1.6;
-          max-width: 100%;
-          padding: 20px;
-        }
-        
-        .folder-title {
-          font-size: 28px;
-          font-weight: 700;
-          margin-bottom: 30px;
-          color: #171717;
-          border-bottom: 2px solid #e5e5e5;
-          padding-bottom: 15px;
-        }
-        
-        .note {
-          margin-bottom: 30px;
-        }
-        
-        .note-title {
-          font-size: 24px;
-          font-weight: 600;
-          margin-bottom: 15px;
-          color: #171717;
-        }
-        
-        .note-content {
-          color: #404040;
-          line-height: 1.7;
-        }
-        
-        h1 { font-size: 24px; font-weight: 600; margin: 15px 0 10px 0; color: #171717; }
-        h2 { font-size: 20px; font-weight: 600; margin: 15px 0 10px 0; color: #171717; }
-        h3 { font-size: 16px; font-weight: 600; margin: 15px 0 10px 0; color: #171717; }
-        
-        p {
-          margin-bottom: 10px;
-        }
-        
-        ul, ol {
-          margin-left: 20px;
-          margin-bottom: 10px;
-        }
-        
-        ul {
-          list-style-type: disc;
-        }
-        
-        ol {
-          list-style-type: decimal;
-        }
-        
-        li {
-          margin-bottom: 5px;
-        }
-        
-        blockquote {
-          border-left: 4px solid #22c55e;
-          padding-left: 15px;
-          margin: 15px 0;
-          color: #737373;
-          font-style: italic;
-        }
-        
-        code {
-          background-color: #f5f5f5;
-          padding: 2px 6px;
-          border-radius: 3px;
-          font-size: 14px;
-          font-family: 'Courier New', monospace;
-        }
-        
-        pre {
-          background-color: #f5f5f5;
-          padding: 15px;
-          border-radius: 5px;
-          overflow-x: auto;
-          margin: 15px 0;
-        }
-        
-        pre code {
-          background: none;
-          padding: 0;
-        }
-        
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 15px 0;
-        }
-        
-        th, td {
-          border: 1px solid #e5e5e5;
-          padding: 10px;
-          text-align: left;
-        }
-        
-        th {
-          background-color: #f5f5f5;
-          font-weight: 600;
-        }
-        
-        .page-break {
-          page-break-after: always;
-        }
-        
-        strong { font-weight: 600; }
-        em { font-style: italic; }
-        u { text-decoration: underline; }
-        s { text-decoration: line-through; }
-      </style>
-    </head>
-    <body>
-      <h1 class="folder-title">${folderName}</h1>
-      ${notesHtml}
-    </body>
-    </html>
-  `;
-
-  const element = document.createElement('div');
-  element.innerHTML = html;
+  const pdfMake = await import('pdfmake/build/pdfmake');
+  const pdfFonts = await import('pdfmake/build/vfs_fonts');
   
-  const opt = {
-    margin: 10,
-    filename: `${folderName}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] as const }
+  (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs || pdfFonts;
+
+  const docDefinition: any = {
+    content: [],
+    styles: {
+      header: {
+        fontSize: 24,
+        bold: true,
+        margin: [0, 0, 0, 20]
+      },
+      heading1: {
+        fontSize: 18,
+        bold: true,
+        margin: [0, 10, 0, 5]
+      },
+      heading2: {
+        fontSize: 15,
+        bold: true,
+        margin: [0, 10, 0, 5]
+      },
+      heading3: {
+        fontSize: 13,
+        bold: true,
+        margin: [0, 10, 0, 5]
+      },
+      noteTitle: {
+        fontSize: 20,
+        bold: true,
+        margin: [0, 0, 0, 10]
+      },
+      paragraph: {
+        fontSize: 11,
+        margin: [0, 0, 0, 8]
+      },
+      list: {
+        fontSize: 11,
+        margin: [0, 0, 0, 8]
+      },
+      quote: {
+        fontSize: 11,
+        italics: true,
+        color: '#737373',
+        borderLeft: { width: 2, color: '#22c55e' }
+      },
+      code: {
+        fontSize: 10,
+        font: 'Courier',
+        background: '#f5f5f5'
+      },
+      table: {
+        fontSize: 10,
+        margin: [0, 10, 0, 10]
+      }
+    },
+    defaultStyle: {
+      font: 'Roboto',
+      fontSize: 11,
+      lineHeight: 1.5
+    },
+    pageMargins: [40, 60, 40, 60]
   };
 
-  await html2pdf().set(opt).from(element).save();
+  docDefinition.content.push({ text: folderName, style: 'header' });
+
+  notes.forEach((note, index) => {
+    if (index > 0) {
+      docDefinition.content.push({ text: '', pageBreak: 'before' });
+    }
+    
+    docDefinition.content.push({ text: note.title, style: 'noteTitle' });
+    
+    const noteContent = parseNoteContent(note.content);
+    docDefinition.content.push(...noteContent);
+    
+    if (index < notes.length - 1) {
+      docDefinition.content.push({ text: '', margin: [0, 20, 0, 0] });
+    }
+  });
+
+  pdfMake.createPdf(docDefinition).download(`${folderName}.pdf`);
 }
