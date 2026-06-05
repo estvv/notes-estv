@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { v4 as uuidv4 } from 'uuid';
 import type { Note, Folder } from '../types/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,16 +28,28 @@ export function initDatabase() {
 }
 
 function runMigrations() {
-  const columns = db.prepare("PRAGMA table_info(folders)").all() as any[];
-  const hasShareToken = columns.some(col => col.name === 'share_token');
+  const folderColumns = db.prepare("PRAGMA table_info(folders)").all() as any[];
+  const hasFolderShareToken = folderColumns.some(col => col.name === 'share_token');
   
-  if (!hasShareToken) {
+  if (!hasFolderShareToken) {
     db.exec(`
       ALTER TABLE folders ADD COLUMN share_token TEXT;
       ALTER TABLE folders ADD COLUMN is_shared INTEGER DEFAULT 0;
       CREATE UNIQUE INDEX IF NOT EXISTS idx_folders_share_token ON folders(share_token) WHERE share_token IS NOT NULL;
     `);
     console.log('Migration: Added share_token columns to folders');
+  }
+  
+  const noteColumns = db.prepare("PRAGMA table_info(notes)").all() as any[];
+  const hasNoteShareToken = noteColumns.some(col => col.name === 'share_token');
+  
+  if (!hasNoteShareToken) {
+    db.exec(`
+      ALTER TABLE notes ADD COLUMN share_token TEXT;
+      ALTER TABLE notes ADD COLUMN is_shared INTEGER DEFAULT 0;
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_notes_share_token ON notes(share_token) WHERE share_token IS NOT NULL;
+    `);
+    console.log('Migration: Added share_token columns to notes');
   }
 }
 
@@ -91,7 +104,6 @@ export function deleteNote(id: number) {
 }
 
 export function generateShareToken(id: number): string {
-  const { v4: uuidv4 } = require('uuid');
   const token = uuidv4();
   db.prepare('UPDATE notes SET share_token = ?, is_shared = 1 WHERE id = ?').run(token, id);
   return token;
@@ -143,7 +155,6 @@ export function getFolderDepth(folderId: number): number {
 }
 
 export function generateFolderShareToken(id: number): string {
-  const { v4: uuidv4 } = require('uuid');
   const token = uuidv4();
   db.prepare('UPDATE folders SET share_token = ?, is_shared = 1 WHERE id = ?').run(token, id);
   return token;
