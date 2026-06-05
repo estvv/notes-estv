@@ -183,7 +183,7 @@ export function getFolderByShareToken(token: string): Folder | undefined {
 }
 
 export function getNotesByFolder(folderId: number): Note[] {
-  return db.prepare('SELECT * FROM notes WHERE folder_id = ? ORDER BY updated_at DESC').all(folderId) as Note[];
+  return db.prepare('SELECT * FROM notes WHERE folder_id = ? ORDER BY position ASC, updated_at DESC').all(folderId) as Note[];
 }
 
 export function getChildFolders(parentId: number): Folder[] {

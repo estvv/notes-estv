@@ -22,6 +22,7 @@ router.get('/:token', (req, res) => {
           id: n.id,
           title: n.title,
           content: n.content,
+          position: n.position,
           updated_at: n.updated_at
         })),
         childFolders: childFolders.map(f => ({

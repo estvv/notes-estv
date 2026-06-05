@@ -84,7 +84,7 @@ export const foldersApi = {
   getShared: (token: string): Promise<{
     type: 'folder';
     folder: { id: number; name: string };
-    notes: Array<{ id: number; title: string; content: string; updated_at: string }>;
+    notes: Array<{ id: number; title: string; content: string; position: number; updated_at: string }>;
     childFolders: Array<{ id: number; name: string; share_token: string | null; is_shared: number }>;
   }> => publicRequest(`/shared/${token}`)
 };

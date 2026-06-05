@@ -4,7 +4,7 @@ import { foldersApi } from '../../utils/api';
 
 interface SharedFolder {
   folder: { id: number; name: string };
-  notes: Array<{ id: number; title: string; content: string; updated_at: string }>;
+  notes: Array<{ id: number; title: string; content: string; position: number; updated_at: string }>;
   childFolders: Array<{ id: number; name: string; share_token: string | null; is_shared: number }>;
 }
 
@@ -25,9 +25,10 @@ export function SharedView() {
     try {
       setLoading(true);
       const folderData = await foldersApi.getShared(token!);
+      const sortedNotes = folderData.notes.sort((a, b) => (a.position || 0) - (b.position || 0));
       setContent({ 
         folder: folderData.folder,
-        notes: folderData.notes,
+        notes: sortedNotes,
         childFolders: folderData.childFolders
       });
     } catch (err: any) {
