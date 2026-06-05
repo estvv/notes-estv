@@ -31,15 +31,11 @@ const loginLimiter = rateLimit({
   message: { success: false, error: 'Too many login attempts' }
 });
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 app.use('/api/auth', loginLimiter, authRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/folders', foldersRoutes);
 app.use('/api/shared', sharedRoutes);
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
