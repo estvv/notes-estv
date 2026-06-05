@@ -32,10 +32,10 @@ function runMigrations() {
   
   if (!hasShareToken) {
     db.exec(`
-      ALTER TABLE folders ADD COLUMN share_token TEXT UNIQUE;
+      ALTER TABLE folders ADD COLUMN share_token TEXT;
       ALTER TABLE folders ADD COLUMN is_shared INTEGER DEFAULT 0;
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_folders_share_token ON folders(share_token) WHERE share_token IS NOT NULL;
     `);
-    db.exec('CREATE INDEX IF NOT EXISTS idx_folders_share_token ON folders(share_token)');
     console.log('Migration: Added share_token columns to folders');
   }
 }
