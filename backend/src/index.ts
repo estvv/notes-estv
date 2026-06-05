@@ -39,3 +39,7 @@ app.use('/api/auth', loginLimiter, authRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/folders', foldersRoutes);
 app.use('/api/shared', sharedRoutes);
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
