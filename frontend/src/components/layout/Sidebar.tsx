@@ -23,6 +23,25 @@ export function Sidebar({
     ? parseInt(location.pathname.split('/')[2])
     : null;
 
+  const selectedNoteId = location.pathname.startsWith('/note/')
+    ? parseInt(location.pathname.split('/')[2])
+    : null;
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    return date.toLocaleDateString();
+  };
+
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;
     
@@ -193,6 +212,28 @@ export function Sidebar({
                         </svg>
                       </button>
                     </div>
+                    
+                    {folderNotes.length > 0 && (
+                      <div className="ml-6 border-l border-neutral-200 pl-2 mt-1 mb-1">
+                        {folderNotes.map(note => (
+                          <button
+                            key={note.id}
+                            onClick={() => navigate(`/note/${note.id}`)}
+                            className={`w-full text-left px-3 py-1.5 rounded transition-colors group flex items-center gap-2 ${
+                              selectedNoteId === note.id ? 'bg-neutral-100' : 'hover:bg-neutral-50'
+                            }`}
+                          >
+                            <svg className="w-3 h-3 text-neutral-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span className="flex-1 text-xs text-neutral-600 truncate">{note.title}</span>
+                            <span className="text-xs text-neutral-400 opacity-0 group-hover:opacity-100">
+                              {formatDate(note.updated_at)}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
