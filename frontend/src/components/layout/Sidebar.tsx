@@ -37,6 +37,28 @@ export function Sidebar({
     }
   };
 
+  const handleShareFolder = async (id: number) => {
+    try {
+      const result = await foldersApi.share(id);
+      const shareUrl = `${window.location.origin}/shared/${result.share_token}`;
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Share link copied to clipboard!');
+      onDataUpdate();
+    } catch (error) {
+      console.error('Failed to share folder:', error);
+      alert('Failed to create share link');
+    }
+  };
+
+  const handleUnshareFolder = async (id: number) => {
+    try {
+      await foldersApi.unshare(id);
+      onDataUpdate();
+    } catch (error) {
+      console.error('Failed to unshare folder:', error);
+    }
+  };
+
   const handleDeleteFolder = async (id: number) => {
     if (!confirm('Delete this folder? Notes will be moved to root.')) return;
     
@@ -183,6 +205,18 @@ export function Sidebar({
                   <span className="text-xs text-neutral-400 mr-2">
                     {folderNotes.length}
                   </span>
+                  
+                  <button
+                    onClick={() => folder.is_shared ? handleShareFolder(folder.id) : handleShareFolder(folder.id)}
+                    className={`opacity-0 group-hover:opacity-100 transition-opacity mr-1 ${
+                      folder.is_shared ? 'text-green-500 hover:text-green-700' : 'text-neutral-400 hover:text-neutral-600'
+                    }`}
+                    title={folder.is_shared ? 'Copy share link' : 'Share folder'}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                  </button>
                   
                   <button
                     onClick={() => handleDeleteFolder(folder.id)}

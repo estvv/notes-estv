@@ -60,5 +60,13 @@ export const foldersApi = {
     request('/folders', { method: 'POST', body: JSON.stringify(folder) }),
   update: (id: number, name: string): Promise<Folder> =>
     request(`/folders/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
-  delete: (id: number): Promise<void> => request(`/folders/${id}`, { method: 'DELETE' })
+  delete: (id: number): Promise<void> => request(`/folders/${id}`, { method: 'DELETE' }),
+  share: (id: number): Promise<{ share_token: string }> => request(`/folders/${id}/share`, { method: 'POST' }),
+  unshare: (id: number): Promise<void> => request(`/folders/${id}/share`, { method: 'DELETE' }),
+  getShared: (token: string): Promise<{
+    type: 'folder';
+    folder: { id: number; name: string };
+    notes: Array<{ id: number; title: string; content: string; updated_at: string }>;
+    childFolders: Array<{ id: number; name: string; share_token: string | null; is_shared: number }>;
+  }> => request(`/shared/${token}`)
 };

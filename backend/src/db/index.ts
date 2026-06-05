@@ -124,3 +124,26 @@ export function getFolderDepth(folderId: number): number {
   
   return depth;
 }
+
+export function generateFolderShareToken(id: number): string {
+  const { v4: uuidv4 } = require('uuid');
+  const token = uuidv4();
+  db.prepare('UPDATE folders SET share_token = ?, is_shared = 1 WHERE id = ?').run(token, id);
+  return token;
+}
+
+export function disableFolderSharing(id: number) {
+  db.prepare('UPDATE folders SET share_token = NULL, is_shared = 0 WHERE id = ?').run(id);
+}
+
+export function getFolderByShareToken(token: string): Folder | undefined {
+  return db.prepare('SELECT * FROM folders WHERE share_token = ? AND is_shared = 1').get(token) as Folder | undefined;
+}
+
+export function getNotesByFolder(folderId: number): Note[] {
+  return db.prepare('SELECT * FROM notes WHERE folder_id = ? ORDER BY updated_at DESC').all(folderId) as Note[];
+}
+
+export function getChildFolders(parentId: number): Folder[] {
+  return db.prepare('SELECT * FROM folders WHERE parent_id = ? ORDER BY name').all(parentId) as Folder[];
+}

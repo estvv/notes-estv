@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { getFolders, createFolder, updateFolder, deleteFolder, getFolderDepth } from '../db/index.js';
+import { getFolders, createFolder, updateFolder, deleteFolder, getFolderDepth, generateFolderShareToken, disableFolderSharing } from '../db/index.js';
 
 const router = Router();
 
@@ -40,6 +40,17 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   deleteFolder(parseInt(req.params.id));
+  res.json({ success: true });
+});
+
+router.post('/:id/share', (req, res) => {
+  const id = parseInt(req.params.id);
+  const token = generateFolderShareToken(id);
+  res.json({ success: true, data: { share_token: token } });
+});
+
+router.delete('/:id/share', (req, res) => {
+  disableFolderSharing(parseInt(req.params.id));
   res.json({ success: true });
 });
 
