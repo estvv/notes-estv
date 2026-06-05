@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { foldersApi, notesApi } from '../../utils/api';
+import { useData } from '../../contexts/DataContext';
 import type { Folder, Note } from '../../types';
 
 export function FolderView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { refreshData } = useData();
   const [folder, setFolder] = useState<Folder | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -48,6 +50,7 @@ export function FolderView() {
       await foldersApi.update(folder.id, newName.trim());
       setFolder({ ...folder, name: newName.trim() });
       setIsEditing(false);
+      refreshData();
     } catch (error) {
       console.error('Failed to rename folder:', error);
     }
@@ -62,6 +65,7 @@ export function FolderView() {
       setShareUrl(url);
       setFolder({ ...folder, is_shared: 1, share_token: result.share_token });
       setShowShareConfirm(true);
+      refreshData();
     } catch (error) {
       console.error('Failed to share folder:', error);
     }
@@ -75,6 +79,7 @@ export function FolderView() {
       setFolder({ ...folder, is_shared: 0, share_token: null });
       setShowShareConfirm(false);
       setShareUrl('');
+      refreshData();
     } catch (error) {
       console.error('Failed to unshare folder:', error);
     }
@@ -87,6 +92,7 @@ export function FolderView() {
     
     try {
       await foldersApi.delete(folder.id);
+      refreshData();
       navigate('/');
     } catch (error) {
       console.error('Failed to delete folder:', error);
@@ -100,6 +106,7 @@ export function FolderView() {
         content: '',
         folder_id: parseInt(id!)
       });
+      refreshData();
       navigate(`/note/${note.id}`);
     } catch (error) {
       console.error('Failed to create note:', error);

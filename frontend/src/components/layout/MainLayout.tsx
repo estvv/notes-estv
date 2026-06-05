@@ -1,37 +1,14 @@
-import { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { EmptyState } from '../notes/EmptyState';
-import { notesApi, foldersApi } from '../../utils/api';
-import type { Note, Folder } from '../../types';
+import { useData } from '../../contexts/DataContext';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    loadData();
-  }, [searchQuery]);
-
-  const loadData = async () => {
-    try {
-      const [notesData, foldersData] = await Promise.all([
-        notesApi.list(searchQuery),
-        foldersApi.list()
-      ]);
-      setNotes(notesData || []);
-      setFolders(foldersData || []);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-      setNotes([]);
-      setFolders([]);
-    }
-  };
+  const { notes, folders, searchQuery, setSearchQuery, refreshData } = useData();
 
   return (
     <div className="h-screen flex flex-col bg-white">
@@ -41,7 +18,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <Sidebar
           folders={folders}
           notes={notes}
-          onDataUpdate={loadData}
+          onDataUpdate={refreshData}
         />
         
         {children || <EmptyState />}

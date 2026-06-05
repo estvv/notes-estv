@@ -64,12 +64,14 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin: 1rem 0;
+  table-layout: fixed;
 }
 
 .prose th, .prose td {
   border: 1px solid #e5e5e5;
   padding: 0.5rem;
   text-align: left;
+  position: relative;
 }
 
 .prose th {
@@ -87,4 +89,44 @@ body {
   color: #a3a3a3;
   pointer-events: none;
   height: 0;
+}
+
+/* Table resizing */
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  z-index: 20;
+  background-color: #22c55e;
+  pointer-events: none;
+  cursor: col-resize;
+}
+
+.ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+
+/* Cell selection */
+.ProseMirror .selectedCell {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.ProseMirror .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: '';
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(34, 197, 94, 0.15);
+  pointer-events: none;
+}
+
+/* Table resize handle hover */
+.tableWrapper {
+  overflow-x: auto;
+  position: relative;
 }

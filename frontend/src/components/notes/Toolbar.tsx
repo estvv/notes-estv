@@ -7,6 +7,8 @@ interface ToolbarProps {
 export function Toolbar({ editor }: ToolbarProps) {
   if (!editor) return null;
 
+  const isInTable = editor.isActive('table');
+
   return (
     <div className="flex items-center gap-1 p-3 border-b border-neutral-200 flex-wrap">
       <button
@@ -117,9 +119,118 @@ export function Toolbar({ editor }: ToolbarProps) {
       <button
         onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
         className="px-3 py-1.5 rounded text-sm hover:bg-neutral-100 transition-colors"
+        title="Insert table"
       >
         Table
       </button>
+
+      {isInTable && (
+        <>
+          <div className="w-px h-6 bg-neutral-200 mx-1" />
+          
+          <button
+            onClick={() => editor.chain().focus().addColumnBefore().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-neutral-100 transition-colors"
+            title="Add column before"
+          >
+            +←Col
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-neutral-100 transition-colors"
+            title="Add column after"
+          >
+            +Col→
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().deleteColumn().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-neutral-100 transition-colors text-red-600"
+            title="Delete column"
+          >
+            -Col
+          </button>
+          
+          <div className="w-px h-4 bg-neutral-200 mx-0.5" />
+          
+          <button
+            onClick={() => editor.chain().focus().addRowBefore().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-neutral-100 transition-colors"
+            title="Add row above"
+          >
+            +↑Row
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().addRowAfter().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-neutral-100 transition-colors"
+            title="Add row below"
+          >
+            +Row↓
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().deleteRow().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-neutral-100 transition-colors text-red-600"
+            title="Delete row"
+          >
+            -Row
+          </button>
+          
+          <div className="w-px h-4 bg-neutral-200 mx-0.5" />
+          
+          <button
+            onClick={() => editor.chain().focus().mergeCells().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-neutral-100 transition-colors"
+            title="Merge cells"
+            disabled={!editor.can().mergeCells()}
+          >
+            Merge
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().splitCell().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-neutral-100 transition-colors"
+            title="Split cell"
+            disabled={!editor.can().splitCell()}
+          >
+            Split
+          </button>
+          
+          <div className="w-px h-4 bg-neutral-200 mx-0.5" />
+          
+          <button
+            onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+            className={`px-2 py-1.5 rounded text-xs transition-colors ${
+              editor.isActive('headerRow') ? 'bg-neutral-900 text-white' : 'hover:bg-neutral-100'
+            }`}
+            title="Toggle header row"
+          >
+            HRow
+          </button>
+          
+          <button
+            onClick={() => editor.chain().focus().toggleHeaderColumn().run()}
+            className={`px-2 py-1.5 rounded text-xs transition-colors ${
+              editor.isActive('headerColumn') ? 'bg-neutral-900 text-white' : 'hover:bg-neutral-100'
+            }`}
+            title="Toggle header column"
+          >
+            HCol
+          </button>
+          
+          <div className="w-px h-4 bg-neutral-200 mx-0.5" />
+          
+          <button
+            onClick={() => editor.chain().focus().deleteTable().run()}
+            className="px-2 py-1.5 rounded text-xs hover:bg-red-50 transition-colors text-red-600"
+            title="Delete table"
+          >
+            Delete Table
+          </button>
+        </>
+      )}
     </div>
   );
 }

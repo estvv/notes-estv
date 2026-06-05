@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { notesApi } from '../../utils/api';
+import { useData } from '../../contexts/DataContext';
 import { NoteEditor } from './NoteEditor';
 import type { Note } from '../../types';
 
 export function NoteView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { refreshData } = useData();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,6 +35,7 @@ export function NoteView() {
     try {
       await notesApi.update(id, updates);
       setNote({ ...note!, ...updates });
+      refreshData();
     } catch (error) {
       console.error('Failed to update note:', error);
     }
@@ -41,6 +44,7 @@ export function NoteView() {
   const handleDeleteNote = async (id: number) => {
     try {
       await notesApi.delete(id);
+      refreshData();
       navigate('/');
     } catch (error) {
       console.error('Failed to delete note:', error);

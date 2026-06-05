@@ -21,7 +21,11 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
     extensions: [
       StarterKit,
       Underline,
-      Table,
+      Table.configure({
+        resizable: true,
+        handleWidth: 5,
+        cellMinWidth: 25,
+      }),
       TableRow,
       TableCell,
       TableHeader,
