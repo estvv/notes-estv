@@ -30,7 +30,6 @@ function extractTextFromNode(node: TiptapNode): string | any[] {
             styles.decoration = 'lineThrough';
             break;
           case 'code':
-            styles.font = 'Courier';
             styles.background = '#f5f5f5';
             break;
         }
@@ -110,17 +109,11 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
       return [{ text: '\n' }];
     
     case 'table': {
-      console.log('Table node:', JSON.stringify(node, null, 2));
       const rows = node.content?.map(row => {
-        console.log('Row:', row);
         const cells = row.content?.map(cell => {
-          console.log('Cell:', cell);
           const cellContent = cell.content?.map(n => {
-            const text = extractTextContent(n);
-            console.log('Cell content node:', n, '->', text);
-            return text;
+            return extractTextContent(n);
           }).flat(Infinity) || [];
-          console.log('Cell content:', cellContent);
           return {
             text: cellContent,
             border: [true, true, true, true],
@@ -129,8 +122,6 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
         }) || [];
         return cells;
       }) || [];
-      
-      console.log('PDF rows:', rows);
       
       return [{ 
         table: { 
@@ -150,24 +141,19 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
 function parseNoteContent(content: string): PdfContent[] {
   try {
     const parsed = JSON.parse(content);
-    console.log('Parsed note content:', parsed);
     if (parsed.content && Array.isArray(parsed.content)) {
       const result = parsed.content.flatMap((node: TiptapNode) => {
-        console.log('Processing node:', node.type, node);
         return nodeToPdfmake(node);
       });
-      console.log('Parsed result:', result);
       return result;
     }
     return [];
   } catch (e) {
-    console.log('Parse error:', e);
     return [{ text: content }];
   }
 }
 
 export async function exportFolderToPdf(folderName: string, notes: Note[]): Promise<void> {
-  console.log('Export function called with notes:', notes);
   const pdfMake = await import('pdfmake/build/pdfmake');
   const pdfFonts = await import('pdfmake/build/vfs_fonts');
   
@@ -217,7 +203,6 @@ export async function exportFolderToPdf(folderName: string, notes: Note[]): Prom
       },
       code: {
         fontSize: 10,
-        font: 'Courier',
         background: '#f5f5f5'
       },
       table: {
