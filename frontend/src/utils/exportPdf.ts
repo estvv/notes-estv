@@ -10,7 +10,7 @@ interface TiptapNode {
 
 type PdfContent = any;
 
-function extractTextContent(node: TiptapNode): any {
+function extractTextFromNode(node: TiptapNode): string | any[] {
   if (node.type === 'text') {
     let text = node.text || '';
     if (node.marks && node.marks.length > 0) {
@@ -40,12 +40,25 @@ function extractTextContent(node: TiptapNode): any {
     return text;
   }
   
+  if (node.type === 'paragraph' && node.content) {
+    const texts = node.content.map(n => extractTextFromNode(n)).flat(Infinity);
+    return texts.length === 1 ? texts[0] : texts;
+  }
+  
   if (node.content) {
-    const contents = node.content.map(n => extractTextContent(n));
+    const contents = node.content.map(n => extractTextFromNode(n));
     return contents.flat(Infinity);
   }
   
   return '';
+}
+
+function extractTextContent(node: TiptapNode): any {
+  const result = extractTextFromNode(node);
+  if (Array.isArray(result) && result.length === 0) {
+    return '';
+  }
+  return result;
 }
 
 function nodeToPdfmake(node: TiptapNode): PdfContent[] {
@@ -97,9 +110,17 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
       return [{ text: '\n' }];
     
     case 'table': {
+      console.log('Table node:', JSON.stringify(node, null, 2));
       const rows = node.content?.map(row => {
+        console.log('Row:', row);
         const cells = row.content?.map(cell => {
-          const cellContent = cell.content?.map(n => extractTextContent(n)).flat(Infinity) || [];
+          console.log('Cell:', cell);
+          const cellContent = cell.content?.map(n => {
+            const text = extractTextContent(n);
+            console.log('Cell content node:', n, '->', text);
+            return text;
+          }).flat(Infinity) || [];
+          console.log('Cell content:', cellContent);
           return {
             text: cellContent,
             border: [true, true, true, true],
@@ -108,6 +129,8 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
         }) || [];
         return cells;
       }) || [];
+      
+      console.log('PDF rows:', rows);
       
       return [{ 
         table: { 

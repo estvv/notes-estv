@@ -3,7 +3,7 @@ services:
     build:
       context: ./backend
       dockerfile: ../Dockerfile.backend
-    container_name: note-backend-estv
+    container_name: notes-backend-estv
     expose:
       - "8080"
     networks:
@@ -31,7 +31,7 @@ services:
       dockerfile: ../Dockerfile.frontend
       args:
         - VITE_API_URL=/api
-    container_name: note-frontend-estv
+    container_name: notes-frontend-estv
     expose:
       - "80"
     networks:
