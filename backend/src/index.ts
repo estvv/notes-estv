@@ -13,6 +13,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3006;
 
+// Trust proxy for rate limiting behind nginx/caddy
+app.set('trust proxy', true);
+
 initDatabase();
 
 app.use(cors());

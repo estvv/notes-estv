@@ -32,7 +32,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
         types: ['heading', 'paragraph'],
       }),
     ],
-    content: note?.content || '',
+    content: note?.content ? JSON.parse(note.content) : '',
     onUpdate: ({ editor }) => {
       if (note) {
         handleContentUpdate(editor.getJSON());
@@ -45,8 +45,13 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
       setTitle(note.title);
       setIsShared(note.is_shared === 1);
       
-      if (editor && editor.getJSON() !== JSON.parse(note.content || '{}')) {
-        editor.commands.setContent(note.content || '');
+      if (editor && note.content) {
+        try {
+          const parsedContent = JSON.parse(note.content);
+          editor.commands.setContent(parsedContent);
+        } catch (e) {
+          editor.commands.setContent('');
+        }
       }
     }
   }, [note?.id]);
