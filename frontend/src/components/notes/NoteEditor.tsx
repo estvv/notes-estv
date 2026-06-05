@@ -7,6 +7,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import { Toolbar } from './Toolbar';
 import { useAutoSave } from '../../hooks/useAutoSave';
 import type { Note } from '../../types';
+import History from '@tiptap/extension-history';
 
 interface NoteEditorProps {
   note: Note | null;
@@ -20,6 +21,7 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      History,
       Underline,
       Table.configure({
         resizable: true,

@@ -10,15 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tiptap/extension-history": "^3.25.0",
+    "@tiptap/extension-table": "3.25.0",
+    "@tiptap/extension-text-align": "3.25.0",
+    "@tiptap/extension-underline": "3.25.0",
+    "@tiptap/pm": "3.25.0",
+    "@tiptap/react": "3.25.0",
+    "@tiptap/starter-kit": "3.25.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^6.23.1",
-    "@tiptap/react": "3.25.0",
-    "@tiptap/starter-kit": "3.25.0",
-    "@tiptap/extension-underline": "3.25.0",
-    "@tiptap/extension-text-align": "3.25.0",
-    "@tiptap/extension-table": "3.25.0",
-    "@tiptap/pm": "3.25.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
