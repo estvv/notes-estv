@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
-import Table from '@tiptap/extension-table';
+import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
 import TextAlign from '@tiptap/extension-text-align';
 import { Toolbar } from './Toolbar';
 import { ShareModal } from './ShareModal';
@@ -24,9 +24,10 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
     extensions: [
       StarterKit,
       Underline,
-      Table.configure({
-        resizable: true,
-      }),
+      Table,
+      TableRow,
+      TableCell,
+      TableHeader,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),

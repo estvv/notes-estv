@@ -117,7 +117,7 @@ export function Toolbar({ editor, onShare, isShared }: ToolbarProps) {
       </button>
 
       <button
-        onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3 }).run()}
+        onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
         className="px-3 py-1.5 rounded text-sm hover:bg-neutral-100 transition-colors"
       >
         Table
