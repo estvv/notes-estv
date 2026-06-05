@@ -150,16 +150,24 @@ function nodeToPdfmake(node: TiptapNode): PdfContent[] {
 function parseNoteContent(content: string): PdfContent[] {
   try {
     const parsed = JSON.parse(content);
+    console.log('Parsed note content:', parsed);
     if (parsed.content && Array.isArray(parsed.content)) {
-      return parsed.content.flatMap((node: TiptapNode) => nodeToPdfmake(node));
+      const result = parsed.content.flatMap((node: TiptapNode) => {
+        console.log('Processing node:', node.type, node);
+        return nodeToPdfmake(node);
+      });
+      console.log('Parsed result:', result);
+      return result;
     }
     return [];
-  } catch {
+  } catch (e) {
+    console.log('Parse error:', e);
     return [{ text: content }];
   }
 }
 
 export async function exportFolderToPdf(folderName: string, notes: Note[]): Promise<void> {
+  console.log('Export function called with notes:', notes);
   const pdfMake = await import('pdfmake/build/pdfmake');
   const pdfFonts = await import('pdfmake/build/vfs_fonts');
   
