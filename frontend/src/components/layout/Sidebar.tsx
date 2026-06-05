@@ -175,10 +175,12 @@ export function Sidebar({
             <div className="px-3 py-4 text-center text-sm text-neutral-400">
               No folders yet. Click + to create one.
             </div>
-          ) : (
+           ) : (
             <div className="space-y-1">
               {folders.map(folder => {
-                const folderNotes = notes.filter(n => n.folder_id === folder.id);
+                const folderNotes = notes
+                  .filter(n => n.folder_id === folder.id)
+                  .sort((a, b) => (a.position || 0) - (b.position || 0));
                 const isExpanded = expandedFolders.has(folder.id);
                 
                 return (
